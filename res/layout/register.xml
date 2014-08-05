@@ -1,0 +1,160 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/mainlayout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#ffcfcfcf" >
+
+    <TextView
+        android:id="@+id/blank"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:focusable="true"
+        android:focusableInTouchMode="true"
+        android:text=" "
+        android:textSize="40pt" />
+
+    <TextView
+        android:id="@+id/mac"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/blank"
+        android:layout_marginBottom="20dp"
+        android:text="MAC: "
+        android:textColor="#ff000000"
+        android:textSize="12pt" />
+
+    <TextView
+        android:id="@+id/Rmac"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/blank"
+        android:layout_toRightOf="@id/mac"
+        android:text=""
+        android:textColor="#ff000000"
+        android:textSize="12pt" />
+
+    <TextView
+        android:id="@+id/gstat"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/mac"
+        android:text="GPS상태: "
+        android:textColor="#ff000000"
+        android:textSize="12pt" />
+
+    <TextView
+        android:id="@+id/Rgstat"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/mac"
+        android:layout_toRightOf="@id/gstat"
+        android:text="not yet"
+        android:textColor="#ff000000"
+        android:textSize="12pt" />
+
+    <TextView
+        android:id="@+id/lat"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/gstat"
+        android:text="위도: "
+        android:textColor="#ff000000"
+        android:textSize="12pt" />
+
+    <TextView
+        android:id="@+id/Rlat"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/gstat"
+        android:layout_toRightOf="@id/lat"
+        android:text="위도 값"
+        android:textColor="#ff000000"
+        android:textSize="12pt" />
+
+    <TextView
+        android:id="@+id/lng"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/lat"
+        android:text="경도: "
+        android:textColor="#ff000000"
+        android:textSize="12pt" />
+
+    <TextView
+        android:id="@+id/Rlng"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/lat"
+        android:layout_toRightOf="@id/lng"
+        android:text="경도 값"
+        android:textColor="#ff000000"
+        android:textSize="12pt" />
+
+    <Button
+        android:id="@+id/Rconfirm"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentRight="true"
+        android:layout_below="@+id/lng"
+        android:layout_margin="5dp"
+        android:text="등록"
+        android:textColor="#ff000000"
+        android:textSize="12pt" />
+
+    <Button
+        android:id="@+id/Rloc"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBaseline="@+id/Rconfirm"
+        android:layout_alignBottom="@+id/Rconfirm"
+        android:layout_margin="5dp"
+        android:layout_toLeftOf="@+id/Rconfirm"
+        android:text="위치"
+        android:textColor="#ff000000"
+        android:textSize="12pt" />
+
+    <Button
+        android:id="@+id/Rmap"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBaseline="@+id/Rconfirm"
+        android:layout_alignBottom="@+id/Rconfirm"
+        android:layout_margin="5dp"
+        android:layout_toLeftOf="@+id/Rloc"
+        android:text="지도"
+        android:textColor="#ff000000"
+        android:textSize="12pt" />
+
+    <Button
+        android:id="@+id/Rrenew"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBaseline="@+id/Rloc"
+        android:layout_alignBottom="@+id/Rloc"
+        android:layout_margin="5dp"
+        android:layout_toLeftOf="@+id/Rmap"
+        android:text="새로고침"
+        android:textColor="#ff000000"
+        android:textSize="11pt" />
+
+    <TextView
+        android:id="@+id/addr"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_below="@+id/Rconfirm"
+        android:text=""
+        android:textColor="#ffffffff"
+        android:textSize="11pt" />
+
+    <Button
+        android:id="@+id/Killservice"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:text="service 종료"
+        android:textColor="#ff000000"
+        android:textSize="11pt" />
+
+</RelativeLayout>

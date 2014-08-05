@@ -1,0 +1,297 @@
+package com.yhsg.safeguard;
+
+import android.app.Activity;
+import android.app.NotificationManager;
+import android.app.Service;
+import android.content.Context;
+import android.content.Intent;
+import android.content.SharedPreferences;
+import android.location.Location;
+import android.location.LocationListener;
+import android.location.LocationManager;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
+import android.os.AsyncTask;
+import android.os.Bundle;
+import android.os.Handler;
+import android.os.IBinder;
+import android.os.Looper;
+import android.os.SystemClock;
+import android.util.Log;
+import android.widget.Toast;
+
+// NETWORK_PROVIDER ==> 오차범위 50m
+// NETWORK_PROVIDER_WIFI ==>
+// GPS_PROVIDER ==>
+public class gpsmsgService extends Service {
+	private static final String TAG="serviceLog";
+	NotificationManager nM;
+	
+	double baseLat;
+	double baseLng;
+	String baseTel;
+	String baseNIC;
+	int baseFlag;	//	1:gps	2:network	3:network_wifi	4:err	
+	
+	SharedPreferences sInfo;
+	SharedPreferences.Editor ed;
+	
+	//Handler locHandler = new Handler();
+	
+	LocationManager locManager;
+	Location loc;
+	
+	double service_lat;
+	double service_lng;
+	float dist[] = new float[2];
+	int service_flag;	// 1:gps 2:netwrok 3:wifi	default = 2;	
+						// standard val is considered wifi val  
+	
+	boolean outOfrange;		//base 50M.  errorrange 1: 16m   2: 50m  3: 10m
+	boolean getserverinfo;
+	
+	private Handler toastHandler;
+	private Handler locHandler;
+	
+	String toastmsg;
+	
+	@Override
+	public void onCreate(){
+		super.onCreate();		
+		Log.d("serviceLog", "onCreate()");
+		
+		
+		sInfo = getSharedPreferences("Information",MODE_PRIVATE);
+		baseTel = sInfo.getString("Tel","");
+		baseNIC = sInfo.getString("NIC","");
+		baseFlag = sInfo.getInt("Flag", 4);
+		baseLat = Double.parseDouble(sInfo.getString("Slat", ""));
+		baseLng = Double.parseDouble(sInfo.getString("Slng", ""));
+		Log.d("serviceLog", "getShared preference");
+		
+	}
+	@Override
+	public IBinder onBind(Intent intent) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+	
+	@Override
+	public int onStartCommand(Intent intent, int flags, int startId) {
+		Log.d("serviceLog", "onStart()");
+	    super.onStartCommand(intent, flags, startId);	    	    
+	    
+	    toastHandler = new Handler();
+	    //locHandler = new Handler(); try1
+	    
+	    ////////////////////////////////////Server Connect////////////////////////////////
+	    
+	    Bundle blat=intent.getExtras();
+	    Bundle blng=intent.getExtras();
+	    /*
+	    baseLat=blat.getDouble("Plat");
+	    baseLng=blng.getDouble("Plng");
+	    baseTel=intent.getStringExtra("Tel");
+	    baseNIC=intent.getStringExtra("NIC");
+	    baseFlag=intent.getIntExtra("stat", 0);	//default val 0	    
+	    */
+	    Log.d("serviceLog", "SharedPreference val is...");
+	    Log.d("serviceLog", baseTel);
+	    Log.d("serviceLog", baseNIC);
+	    Log.d("serviceLog", ""+baseFlag);
+	    Log.d("serviceLog", ""+baseLat);
+	    Log.d("serviceLog", ""+baseLng);
+	    
+	    outOfrange=false;
+	    service_flag = 2;
+	    
+	    ////////////////////////////////////Server Connect////////////////////////////////
+	    
+	    if(baseFlag == 4)
+	    	stopSelf();
+	    //Log.d("serviceLog", baseLat+"\n"+baseLng+"\n"+baseTel+"\n"+baseNIC+"\n"+baseFlag);
+	    //Thread thread1 = new locationThread();	//try2
+	    //Log.v(TAG,"backgroundGetLoc() start");	//try3
+	    //backgroundGetLoc();	//try3
+	    
+	    //Log.v(TAG,"thread1 start");
+	    //thread1.start();	//try2
+	    //Log.v(TAG,"Call locProcessing()");		//try1
+	    //locProcessing();		//try1	  
+	    /*
+	    Handler mHandler = new Handler(Looper.getMainLooper());
+	    mHandler.postDelayed(new Runnable(){
+	    	@Override
+	    	public void run(){
+	    		while(true){
+	    			backgroundGetLoc();
+	    			SystemClock.sleep(3000);
+	    		}
+	    	}
+	    },0);
+	    */		//try 4
+	    Log.v(TAG,"backgroundGetLoc() start");
+	    backgroundGetLoc();
+	    
+	    return START_STICKY;
+	    }//end of onStart()
+	
+
+	@Override
+	public void onDestroy() { 
+	    Log.d("serviceLog", "onDestroy()");
+	    locManager.removeUpdates(Llistener);
+	    super.onDestroy();
+	    }
+	
+//////////////////////////Try1. Thread stuff///////////////////////////////////////	
+private void locProcessing(){
+	Log.v(TAG,"I'm locProcessing()");
+	Thread thread = new Thread(backgroundLocation);
+	Log.v(TAG,"make thread and start");
+	thread.start();
+}
+private Runnable backgroundLocation = new Runnable(){	//execute background method
+	public void run(){
+		Log.v(TAG,"I'm bglocation thread. work start");
+		while(true){
+		backgroundGetLoc();
+		toastmsg="위도:"+service_lat+" 경도:"+service_lng;
+		toastMSG(toastmsg);
+		SystemClock.sleep(3000);
+		}
+	}
+};
+
+private Runnable donothing = new Runnable(){
+	public void run(){
+		// lol
+	}
+};
+//////////////////////////Try1. Thread stuff///////////////////////////////////////
+
+//////////////////////////Try2. Thread stuff///////////////////////////////////////
+private class locationThread extends Thread{
+	public void run(){
+		Log.v(TAG,"I'm bglocation thread. work start");
+		while(true){
+			backgroundGetLoc();
+			SystemClock.sleep(3000);
+		}
+	}
+}
+//////////////////////////Try2. Thread stuff///////////////////////////////////////
+
+//////////////////////location thread job//////////////////////////////////
+private void backgroundGetLoc(){
+	//doing something
+	locManager = (LocationManager)getSystemService(Context.LOCATION_SERVICE);
+	if(locManager.isProviderEnabled(LocationManager.GPS_PROVIDER))
+		service_flag = 1;
+	
+	if(service_flag == 1){
+		Log.v(TAG,"GPS_Provider= "+locManager.isProviderEnabled(LocationManager.GPS_PROVIDER));
+		loc = locManager.getLastKnownLocation(locManager.GPS_PROVIDER);
+		Log.v(TAG,"G_loc alloacate");
+		Log.v(TAG,"G_call listenr");
+		locManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, Llistener); //1min , 5m
+		Log.v(TAG,"G_call updateLocation()");	
+		service_flag=1;		//gps mode
+		updateLocation(loc);							
+		}
+	else{
+		Log.v(TAG,"NETWORK_PROVIDER");
+		loc = locManager.getLastKnownLocation(locManager.NETWORK_PROVIDER);
+		Log.v(TAG,"N_loc alloacate");
+		Log.v(TAG,"N_call listenr");
+		locManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, Llistener); //0sec , 0m
+		Log.v(TAG,"N_call chakstatus()");
+		chkstatus();
+		Log.v(TAG,"call updateLocation()");
+		updateLocation(loc);
+		}
+	//locHandler.post(donothing);
+}
+////////////////////////location thread job//////////////////////////////////
+
+////////////////////////toast stuff//////////////////////////////////
+private class ToastRunnable implements Runnable{
+	String tText;
+	public ToastRunnable(String text){
+		tText = text;
+	}
+	@Override
+	public void run(){
+		Toast.makeText(getApplicationContext(), tText, Toast.LENGTH_SHORT).show();
+	}
+}
+private void toastMSG(String msg){
+	toastHandler.post(new ToastRunnable(msg));
+}
+////////////////////////toast stuff//////////////////////////////////
+
+
+////////////////////////////////////////Location stuff////////////////////////////////////////
+	private final LocationListener Llistener = new LocationListener(){	
+		@Override		
+			public void onLocationChanged(Location location) {
+				Log.v(TAG,"Llistener change location");
+				//Toast.makeText(getApplicationContext(),"위치변경",Toast.LENGTH_SHORT).show();
+				updateLocation(location);
+				Log.v(TAG,"Llistener change location succeed");						
+			}
+			@Override
+			public void onProviderDisabled(String provider) {
+				Log.v(TAG,"Llistener disable");
+			}
+
+			@Override
+			public void onProviderEnabled(String provider) {
+				Log.v(TAG,"Llistener enable");
+			}
+
+			@Override
+			public void onStatusChanged(String provider, int status, Bundle extras) {
+				Log.v(TAG,"Llistener change status");
+			}	    	
+	};
+	    
+	private void updateLocation(Location location){
+		Log.v(TAG,"Call updateLocation succeed");
+	    
+	    if(location == null){
+	    	Log.v(TAG,"location=null");
+	    	Log.v(TAG,"request location");
+	    	service_flag=2;
+	    	}	    	
+	    
+	    else if(location != null){
+	    	Log.v(TAG,"location != null");
+	    	service_lat=location.getLatitude();
+	    	service_lng=location.getLongitude();	
+	    	toastmsg="위도:"+service_lat+" 경도:"+service_lng;
+	    	toastMSG(toastmsg);
+	    	Log.v(TAG,"get lat,lng success");
+	    	}	
+	    }
+////////////////////////////////////////Location stuff////////////////////////////////////////
+	
+///////////////////////////////check network status///////////////////////////////
+	private void chkstatus() {
+		//flag val ---> 1:gps	2:network	3:network_wifi	4:err
+		ConnectivityManager conMan = (ConnectivityManager)getSystemService(Context.CONNECTIVITY_SERVICE);
+		NetworkInfo status_mobile = conMan.getNetworkInfo(ConnectivityManager.TYPE_MOBILE);
+		NetworkInfo status_wifi = conMan.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
+		Log.v(TAG,"network ifno initalize");
+		//if((status_mobile.isConnected() && status_wifi.isConnected()) || (status_mobile.isFailover() && status_wifi.isConnected()))
+		if(status_wifi.isConnected())
+			service_flag=3;
+		else
+			service_flag=2;
+		Log.v(TAG,"service_flag finish");
+		}
+/////////////////////////////check network status///////////////////////////////
+	
+
+}	// end of service
+

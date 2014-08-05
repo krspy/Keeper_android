@@ -1,0 +1,39 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#ffcfcfcf" >
+
+    <Button
+        android:id="@+id/Mtest"
+        android:layout_width="170dp"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:layout_centerVertical="true"
+        android:gravity="center_vertical|center_horizontal"
+        android:text="Test"
+        android:textColor="#ff000000"
+        android:textSize="15pt" />
+    
+    <Button
+        android:id="@+id/Mstop"
+        android:layout_width="170dp"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/Mtest"
+        android:layout_centerHorizontal="true"
+        android:gravity="center_vertical|center_horizontal"
+        android:text="종료"
+        android:textColor="#ff000000"
+        android:textSize="15pt" />
+
+    <Button
+        android:id="@+id/Mregister"
+        android:layout_width="170dp"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/Mtest"
+        android:layout_alignLeft="@+id/Mtest"
+        android:gravity="center_horizontal"
+        android:text="등록"
+        android:textColor="#ff000000"
+        android:textSize="15pt" />
+
+</RelativeLayout>
